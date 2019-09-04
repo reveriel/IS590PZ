@@ -276,18 +276,20 @@ def findAllSolutions(cells, borders, amount):
     # monsterPerm = getPermutation(monsterList)
     monsterPerm = permutations(
         monsterList, len(monsterList))
-    for trial in set(monsterPerm):
-        index = 0
-        for lenIndex in range(PUZZLESIZE):
-            for widIndex in range(PUZZLESIZE):
-                if cells[lenIndex][widIndex].cellType == "monster":
-                    cells[lenIndex][widIndex].value = trial[index]
-                    index += 1
-        if isValidPuzzle(cells, borders) == True:
-            totalSol += 1
-            if totalSol <= 3:
-                print("Solution " + str(totalSol) + ":")
-                printPuzzle(cells, borders, amount)
+    # for trial in set(monsterPerm):
+    #     index = 0
+    #     for lenIndex in range(PUZZLESIZE):
+    #         for widIndex in range(PUZZLESIZE):
+    #             if cells[lenIndex][widIndex].cellType == "monster":
+    #                 cells[lenIndex][widIndex].value = trial[index]
+    #                 index += 1
+    #     if isValidPuzzle(cells, borders) == True:
+    #         totalSol += 1
+    #         if totalSol <= 3:
+    #             print("Solution " + str(totalSol) + ":")
+    #             printPuzzle(cells, borders, amount)
+    if isValidPuzzle(cells, borders) == True:
+        totalSol += 1
 
     return totalSol
 
