@@ -1,10 +1,10 @@
 # data structure:
-# map is a 2-D list of size height*width. Each map[i][j] contains a Point (a class defined below)
+# maps is a 2-D list of size height*width. Each maps[i][j] contains a Point (a class defined below)
 # line is a 3-D list of current line. For example[[[0,0],[2,1]],[[2,1],[2,2]]] represent there are two line
-# in the map which is (0,0),(2,1) and (2,1),(2,2)
+# in the maps which is (0,0),(2,1) and (2,1),(2,2)
 # IMPORTANT!!! For a lineA, lineA[0] should be where it starts(one of two ends) ,and lineA[1] should be where it ends. 
 # endPoint should be a 1*2 list 
-map=[]
+maps=[]
 line=[]
 endPoint1=[]
 endPoint2=[]
@@ -20,9 +20,9 @@ class Point:
         self.value=value
     
 
-def init_map():
+def init_maps():
     while True:
-        str=input("input map size, for example 3,3:")
+        str=input("input maps size, for example 3,3:")
         height=str[0]
         width=str[2]
         if(height>0 & width>0 & str[1]==","):
@@ -30,13 +30,13 @@ def init_map():
         else:
             print("Invlid size! Please try again.")
 
-    global map
+    global maps
 
     for i in range(height):
-        map_sub=[]
+        maps_sub=[]
         for j in range(width):
-            map_sub.append(Point(i,j,"*"))
-        map.append(map_sub)
+            maps_sub.append(Point(i,j,"*"))
+        maps.append(maps_sub)
 
     return height,width
 
@@ -123,10 +123,10 @@ def is_valid_input(str):
 
     
 
-def get_possible_move(map):
-    # This fuction has map as input. 
+def get_possible_move(maps):
+    # This fuction has maps as input. 
     # Find all possible new lines (point pairs) and append them in a 3-D list: possible_move
-    # Use is_valid_line() here, check all unconnected(go through map[] and find whether a point has value "*")
+    # Use is_valid_line() here, check all unconnected(go through maps[] and find whether a point has value "*")
     # from two end points
 
     possible_move=[]
@@ -141,14 +141,14 @@ def choose_move(possible_move):
     return pointA,pointB
 
 def move(pointA,pointB):
-    # connect the two point and upgrade the map[], line[]
+    # connect the two point and upgrade the maps[], line[]
     # update endPoint1, endPoint2
     # update endPoint1, endPoint2
 
 
 if __name__ == "__main__":
-    height,width=init_map()
-    global map
+    height,width=init_maps()
+    global maps
     while True:
         New_Move=input("input the two points you want to connect, in the format of (0,0),(2,1) with no blank space:")
         if is_valid_input(New_Move) == False:
@@ -165,14 +165,13 @@ if __name__ == "__main__":
 
         move(pointA1,pointA2)
 
-        possible_move=get_possible_move(map)
+        possible_move=get_possible_move(maps)
         if not possible_move:
             print("AI wins!")
             break
         pointA, pointB=choose_move(possible_move)
         move(pointA,pointB)
-        possible_move=get_possible_move(map)
+        possible_move=get_possible_move(maps)
         if not possible_move:
             print("You wins!")
             break
-
