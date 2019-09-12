@@ -77,7 +77,7 @@ def is_twoline_cross(lineA,lineB): #lineA and lineB should be a 2-D list with si
         else:
             if ((x0-x2)*(x0-x3))<=0 or ((x1-x2)*(x1-x3)): return True
             
-    if test1<0 and test2<0 return True
+    if test1<0 and test2<0: return True
     return False
 
 def is_valid_line(point1,point2):
@@ -126,7 +126,8 @@ def is_valid_input(str):
 def get_possible_move(map):
     # This fuction has map as input. 
     # Find all possible new lines (point pairs) and append them in a 3-D list: possible_move
-    # Use is_twoline_cross() here, check all unconnected(go through map[] and find whether a point has value "*")
+    # Use is_valid_line() here, check all unconnected(go through map[] and find whether a point has value "*")
+    # from two end points
 
     possible_move=[]
     
