@@ -88,6 +88,7 @@ def mirror(i):
 
 
 # PUZZLESIZE = 4
+flag=0
 
 
 # No random generation process is taken. Please refer to https://www.chiark.greenend.org.uk/~sgtatham/puzzles/js/undead.html to initiate the puzzle for current stage.
@@ -274,22 +275,29 @@ def findAllSolutions(cells, borders, amount):
 
     monsterList = getMonsterList(amount)
     # monsterPerm = getPermutation(monsterList)
-    monsterPerm = permutations(
-        monsterList, len(monsterList))
-    # for trial in set(monsterPerm):
-    #     index = 0
-    #     for lenIndex in range(PUZZLESIZE):
-    #         for widIndex in range(PUZZLESIZE):
-    #             if cells[lenIndex][widIndex].cellType == "monster":
-    #                 cells[lenIndex][widIndex].value = trial[index]
-    #                 index += 1
-    #     if isValidPuzzle(cells, borders) == True:
-    #         totalSol += 1
-    #         if totalSol <= 3:
-    #             print("Solution " + str(totalSol) + ":")
-    #             printPuzzle(cells, borders, amount)
-    if isValidPuzzle(cells, borders) == True:
-        totalSol += 1
+    monsterPerm = permutations(monsterList, len(monsterList))
+    l=set(monsterPerm)
+    testList=(2,3,3,3,3,3,3,1,1,3,2,3)
+    for trial in monsterPerm:
+        if trial==testList:
+            flag=1
+    for trial in set(monsterPerm):
+        if trial==testList:
+            flag=1
+    # for trial in testList:
+        index = 0
+        for lenIndex in range(PUZZLESIZE):
+            for widIndex in range(PUZZLESIZE):
+                if cells[lenIndex][widIndex].cellType == "monster":
+                    cells[lenIndex][widIndex].value = trial[index]
+                    index += 1
+        if isValidPuzzle(cells, borders) == True:
+            totalSol += 1
+            if totalSol <= 20:
+                print("Solution " + str(totalSol) + ":")
+                printPuzzle(cells, borders, amount)
+    # if isValidPuzzle(cells, borders) == True:
+    #     totalSol += 1
 
     return totalSol
 
@@ -303,3 +311,4 @@ if __name__ == "__main__":
     print("It might take a few minutes, please be patient...")
     solNum = findAllSolutions(cells, borders, amount)
     print("There are " + str(solNum) + " solutions in all")
+    print(flag)
