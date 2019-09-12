@@ -4,10 +4,13 @@
 # in the maps which is (0,0),(2,1) and (2,1),(2,2)
 # IMPORTANT!!! For a lineA, lineA[0] should be where it starts(one of two ends) ,and lineA[1] should be where it ends. 
 # endPoint should be a 1*2 list 
+import random
+
 maps=[]
 line=[]
 endPoint1=[]
 endPoint2=[]
+index_move=1
 
 class Point:
     #ind_x and idx_y is the index of the point in height and width
@@ -128,8 +131,13 @@ def get_possible_move(maps):
     # Find all possible new lines (point pairs) and append them in a 3-D list: possible_move
     # Use is_valid_line() here, check all unconnected(go through maps[] and find whether a point has value "*")
     # from two end points
-
+    global maps
     possible_move=[]
+    for i in range(len(maps)):
+        for j in range(len(maps[0])):
+            if maps[i][j].value=="*":
+                if(is_valid_line(endPoint1,[i,j])): possible_move.append([endPoint1,[i,j]])
+                if(is_valid_line(endPoint2,[i,j])): possible_move.append([endPoint2,[i,j]])
     
     return possible_move
 
@@ -137,18 +145,30 @@ def choose_move(possible_move):
     # Choose a move from the possible_move.
     # now we use random choose, may be next time we can have a smart AI
     # Return the move represented by two point. Each point is a 1-D list like [0,0]
-
+    l=len(possible_move)
+    index=random.randint(0,l-1)
+    pointA=possible_move[index][0]
+    pointB=possible_move[index][1]
     return pointA,pointB
 
 def move(pointA,pointB):
     # connect the two point and upgrade the maps[], line[]
     # update endPoint1, endPoint2
     # update endPoint1, endPoint2
+    new_line=[]
+    new_line.append(pointA)
+    new_line.append(pointB)
+    line.append(new_line)
+    if endPoint1==pointA: endPoint1=pointB
+    if endPoint2==pointA: endPoint2=pointB
+    global index_move
+    maps[pointB[0]][pointB[1]].value=index_move
+    index_move+=1
+
 
 
 if __name__ == "__main__":
     height,width=init_maps()
-    global maps
     while True:
         New_Move=input("input the two points you want to connect, in the format of (0,0),(2,1) with no blank space:")
         if is_valid_input(New_Move) == False:
