@@ -26,9 +26,9 @@ class Point:
 def init_maps():
     while True:
         str=input("input maps size, for example 3,3:")
-        height=str[0]
-        width=str[2]
-        if(height>0 & width>0 & str[1]==","):
+        height=int(str[0])
+        width=int(str[2])
+        if(height>0 and width>0):
             break
         else:
             print("Invlid size! Please try again.")
@@ -54,28 +54,45 @@ def is_twoline_cross(lineA,lineB): #lineA and lineB should be a 2-D list with si
     x3=lineB[1][0]
     y3=lineB[1][1]
 
-    #assume ax+by+1=0
+    c=1
 
-    a1=(y1-y0)/(y0*x1-y1*x0)
-    b1=(x0-y1)/(y0*x1-y1*x0)
+    #assume ax+by+c=0
+    if (y0*x1-y1*x0)!=0:
+        a1=(y1-y0)/(y0*x1-y1*x0)
+        b1=(x0-y1)/(y0*x1-y1*x0)
+    else:
+        if(x1==0):
+            b1=0
+        else:
+            b1=-y1/x1
+        a1=1
+        c=0
 
-    a2=(y3-y2)/(y2*x3-y3*x2)
-    b2=(x2-y3)/(y2*x3-y3*x2)
+    if (y2*x3-y3*x2)!=0:
+        a2=(y3-y2)/(y2*x3-y3*x2)
+        b2=(x2-y3)/(y2*x3-y3*x2)
+    else:
+        if (x3==0):
+            b2=0
+        else:
+            b2=-y3/x3
+        a2=1
+        c=0
 
-    test1=(a1*x2+b1*y2+1)*(a1*x3+b1*y3+1)
+    test1=(a1*x2+b1*y2+c)*(a1*x3+b1*y3+c)
     if test1==0:
-        if (a1*x2+b1*y2+1)==0 & (a1*x3+b1*y3+1)!=0:
+        if (a1*x2+b1*y2+c)==0 and (a1*x3+b1*y3+c)!=0:
             if ((x2-x0)*(x2-x1))<=0: return True
-        elif (a1*x2+b1*y2+1)!=0 & (a1*x3+b1*y3+1)==0:
+        elif (a1*x2+b1*y2+c)!=0 and (a1*x3+b1*y3+c)==0:
             if ((x3-x0)*(x3-x1))<=0: return True
         else:
             if ((x2-x0)*(x2-x1))<=0 or ((x3-x0)*(x3-x1))<=0: return True
 
-    test2=(a2*x0+b2*y0+1)*(a2*x1+b2*y1+1)
+    test2=(a2*x0+b2*y0+c)*(a2*x1+b2*y1+c)
     if test2==0:
-        if (a2*x0+b2*y0+1)==0 & (a2*x1+b2*y1+1)!=0:
+        if (a2*x0+b2*y0+c)==0 and (a2*x1+b2*y1+c)!=0:
             if ((x0-x2)*(x0-x3))<=0: return True
-        elif (a2*x0+b2*y0+1)!=0 & (a2*x1+b2*y1+1)==0:
+        elif (a2*x0+b2*y0+c)!=0 and (a2*x1+b2*y1+c)==0:
             if ((x1-x2)*(x1-x3))<=0: return True
         else:
             if ((x0-x2)*(x0-x3))<=0 or ((x1-x2)*(x1-x3)): return True
@@ -89,8 +106,49 @@ def is_valid_line(point1,point2):
     lineA.append(point2)
     line_copy=line
     
+    if index_move==2:
+        if point1==line[0][1]:
+            temp=line[0][0]
+            line[0][0]=line[0][1]
+            line[0][1]=temp
+            if (point2[0]-point1[0]) == 0:
+                if (line[0][1][0]-line[0][0][0]) != 0: return True
+                else:
+                    if (point2[1] - line[0][1][1])*(point2[1] - line[0][0][1]) <= 0: return False
+                    else: return True
+            
+            if (line[0][1][0]-line[0][0][0])==0:
+                if (point2[0]-point1[0]) != 0:
+                    return True
+
+            if (point2[1]-point1[1])/(point2[0]-point1[0]) == (line[0][1][1]-line[0][0][1])/(line[0][1][0]-line[0][0][0]): return False
+
+        if point1==line[0][0]:
+            if (point2[0]-point1[0]) == 0:
+                if (line[0][1][0]-line[0][0][0]) != 0: return True
+                else:
+                    if (point2[1] - line[0][1][1])*(point2[1] - line[0][0][1]) <= 0: return False
+                    else: return True
+            
+            if (line[0][1][0]-line[0][0][0])==0:
+                if (point2[0]-point1[0]) != 0:
+                    return True
+
+            if (point2[1]-point1[1])/(point2[0]-point1[0]) == (line[0][1][1]-line[0][0][1])/(line[0][1][0]-line[0][0][0]): return False
+        return True
+
     for i in line:
+        if i == line[0]: continue
         if i[1]==point1:
+            if (point2[0]-point1[0])==0:
+                if (i[1][0]-i[0][0])!=0: return True
+                else: 
+                    if (point2[1] - i[1][1])*(point2[1] - i[0][1]) <= 0: return False
+                    else: return True
+            
+            if (i[1][0]-i[0][0])==0 :
+                if (point2[0]-point1[0])!=0: return True
+
             if (point2[1]-point1[1])/(point2[0]-point1[0]) == -(i[1][1]-i[0][1])/(i[1][0]-i[0][0]): return False
             line_copy.remove(i)
             break
@@ -104,10 +162,10 @@ def is_valid_line(point1,point2):
 
 
 def is_valid_input(str):
-    if len(str!=11): return False
+    if len(str)!=11: return False
     bo1=(str[0]=="(" and str[2]=="," and str[4]==")" and str[5]=="," and str[6]=="(" and str[8]=="," and str[10]==")")
     bo2=(str[1].isdigit() and str[3].isdigit() and str[7].isdigit() and str[9].isdigit())
-    bo3=(str[1]>=0 and str[1]<height and str[7]>=0 and str[7]<height and str[3]>=0 and str[3]<width and str[9]>=0 and str[9]<width)
+    bo3=(int(str[1])>=0 and int(str[1])<height and int(str[7])>=0 and int(str[7])<height and int(str[3])>=0 and int(str[3])<width and int(str[9])>=0 and int(str[9])<width)
     if (bo1 and bo2 and bo3) == False: return False
 
     pointA1=[]
@@ -119,7 +177,8 @@ def is_valid_input(str):
     pointA2.append(int(str[9]))
 
     lineA=[]
-    lineA.append(pointA1,pointA2)
+    lineA.append(pointA1)
+    lineA.append(pointA2)
 
     if is_valid_line(pointA1,pointA2): return True
     return False
@@ -131,12 +190,14 @@ def get_possible_move(maps):
     # Find all possible new lines (point pairs) and append them in a 3-D list: possible_move
     # Use is_valid_line() here, check all unconnected(go through maps[] and find whether a point has value "*")
     # from two end points
-    global maps
     possible_move=[]
     for i in range(len(maps)):
         for j in range(len(maps[0])):
             if maps[i][j].value=="*":
-                if(is_valid_line(endPoint1,[i,j])): possible_move.append([endPoint1,[i,j]])
+                if(is_valid_line(endPoint1,[i,j])): 
+                    possible_move.append([endPoint1,[i,j]])
+                    if index_move==2:
+                        break
                 if(is_valid_line(endPoint2,[i,j])): possible_move.append([endPoint2,[i,j]])
     
     return possible_move
@@ -155,6 +216,8 @@ def move(pointA,pointB):
     # connect the two point and upgrade the maps[], line[]
     # update endPoint1, endPoint2
     # update endPoint1, endPoint2
+    global endPoint1
+    global endPoint2
     new_line=[]
     new_line.append(pointA)
     new_line.append(pointB)
@@ -162,10 +225,24 @@ def move(pointA,pointB):
     if endPoint1==pointA: endPoint1=pointB
     if endPoint2==pointA: endPoint2=pointB
     global index_move
-    maps[pointB[0]][pointB[1]].value=index_move
+    maps[pointB[0]][pointB[1]].value=str(index_move)
+    if index_move==1: 
+        maps[pointA[0]][pointA[1]].value="0"
+        endPoint1=pointA
+        endPoint2=pointB
     index_move+=1
 
+def printmaps():
+    height=len(maps)
+    width=len(maps[0])
+    for i in range(height):
+        for j in range(width):
+            print(" " + maps[i][j].value + " ", end = '')
+        print("/n")
 
+def printlines():
+    for i in line:
+        print(i)
 
 if __name__ == "__main__":
     height,width=init_maps()
@@ -184,13 +261,19 @@ if __name__ == "__main__":
         pointA2.append(int(New_Move[9]))
 
         move(pointA1,pointA2)
+        printmaps()
+        printlines()
 
         possible_move=get_possible_move(maps)
         if not possible_move:
             print("AI wins!")
             break
         pointA, pointB=choose_move(possible_move)
+
         move(pointA,pointB)
+        printmaps()
+        printlines()
+
         possible_move=get_possible_move(maps)
         if not possible_move:
             print("You wins!")
