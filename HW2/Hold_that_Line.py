@@ -1,3 +1,4 @@
+# new
 # data structure:
 # maps is a 2-D list of size height*width. Each maps[i][j] contains a Point (a class defined below)
 # line is a 3-D list of current line. For example[[[0,0],[2,1]],[[2,1],[2,2]]] represent there are two line
@@ -5,6 +6,7 @@
 # IMPORTANT!!! For a lineA, lineA[0] should be where it starts(one of two ends) ,and lineA[1] should be where it ends. 
 # endPoint should be a 1*2 list 
 import random
+import copy
 
 maps=[]
 line=[]
@@ -54,45 +56,46 @@ def is_twoline_cross(lineA,lineB): #lineA and lineB should be a 2-D list with si
     x3=lineB[1][0]
     y3=lineB[1][1]
 
-    c=1
+    c1=1
+    c2=1
 
     #assume ax+by+c=0
     if (y0*x1-y1*x0)!=0:
         a1=(y1-y0)/(y0*x1-y1*x0)
-        b1=(x0-y1)/(y0*x1-y1*x0)
+        b1=(x0-x1)/(y0*x1-y1*x0)
     else:
         if(x1==0):
             b1=0
         else:
             b1=-y1/x1
         a1=1
-        c=0
+        c1=0
 
     if (y2*x3-y3*x2)!=0:
         a2=(y3-y2)/(y2*x3-y3*x2)
-        b2=(x2-y3)/(y2*x3-y3*x2)
+        b2=(x2-x3)/(y2*x3-y3*x2)
     else:
         if (x3==0):
             b2=0
         else:
             b2=-y3/x3
         a2=1
-        c=0
+        c2=0
 
-    test1=(a1*x2+b1*y2+c)*(a1*x3+b1*y3+c)
+    test1=(a1*x2+b1*y2+c1)*(a1*x3+b1*y3+c1)
     if test1==0:
-        if (a1*x2+b1*y2+c)==0 and (a1*x3+b1*y3+c)!=0:
+        if (a1*x2+b1*y2+c1)==0 and (a1*x3+b1*y3+c1)!=0:
             if ((x2-x0)*(x2-x1))<=0: return True
-        elif (a1*x2+b1*y2+c)!=0 and (a1*x3+b1*y3+c)==0:
+        elif (a1*x2+b1*y2+c1)!=0 and (a1*x3+b1*y3+c1)==0:
             if ((x3-x0)*(x3-x1))<=0: return True
         else:
             if ((x2-x0)*(x2-x1))<=0 or ((x3-x0)*(x3-x1))<=0: return True
 
-    test2=(a2*x0+b2*y0+c)*(a2*x1+b2*y1+c)
+    test2=(a2*x0+b2*y0+c2)*(a2*x1+b2*y1+c2)
     if test2==0:
-        if (a2*x0+b2*y0+c)==0 and (a2*x1+b2*y1+c)!=0:
+        if (a2*x0+b2*y0+c2)==0 and (a2*x1+b2*y1+c2)!=0:
             if ((x0-x2)*(x0-x3))<=0: return True
-        elif (a2*x0+b2*y0+c)!=0 and (a2*x1+b2*y1+c)==0:
+        elif (a2*x0+b2*y0+c2)!=0 and (a2*x1+b2*y1+c2)==0:
             if ((x1-x2)*(x1-x3))<=0: return True
         else:
             if ((x0-x2)*(x0-x3))<=0 or ((x1-x2)*(x1-x3)): return True
@@ -101,10 +104,11 @@ def is_twoline_cross(lineA,lineB): #lineA and lineB should be a 2-D list with si
     return False
 
 def is_valid_line(point1,point2):
+    global line
     lineA=[]
     lineA.append(point1)
     lineA.append(point2)
-    line_copy=line
+    line_copy=copy.deepcopy(line)
     
     if index_move==2:
         if point1==line[0][1]:
@@ -138,7 +142,7 @@ def is_valid_line(point1,point2):
         return True
 
     for i in line:
-        if i == line[0]: continue
+        #if i == line[0]: continue
         if i[1]==point1:
             if (point2[0]-point1[0])==0:
                 if (i[1][0]-i[0][0])!=0: return True
@@ -149,7 +153,9 @@ def is_valid_line(point1,point2):
             if (i[1][0]-i[0][0])==0 :
                 if (point2[0]-point1[0])!=0: return True
 
-            if (point2[1]-point1[1])/(point2[0]-point1[0]) == -(i[1][1]-i[0][1])/(i[1][0]-i[0][0]): return False
+            if (point2[1]-point1[1])/(point2[0]-point1[0]) == (i[1][1]-i[0][1])/(i[1][0]-i[0][0]):
+                if ((point2[0]-i[0][0])*(point2[0]-i[1][0]))<0: return False # need fix for opposite line
+                return True
             line_copy.remove(i)
             break
 
@@ -218,6 +224,7 @@ def move(pointA,pointB):
     # update endPoint1, endPoint2
     global endPoint1
     global endPoint2
+    global line
     new_line=[]
     new_line.append(pointA)
     new_line.append(pointB)
@@ -238,7 +245,7 @@ def printmaps():
     for i in range(height):
         for j in range(width):
             print(" " + maps[i][j].value + " ", end = '')
-        print("/n")
+        print("\n")
 
 def printlines():
     for i in line:
