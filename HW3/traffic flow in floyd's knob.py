@@ -18,12 +18,7 @@ def cut_edge(a,b,maps):
 
 def init_map(height):
     size=height*(2*height-1)
-    maps=[]
-    for i in range(size):
-        maps_sub=[]
-        for j in range(size):
-            maps_sub.append(0)
-        maps.append(maps_sub)
+    maps = [[0 for _ in range(size)] for _ in range(size)]
     #At first all way is through
     for i in range(2*height-1):
         for j in range(height):
@@ -94,9 +89,14 @@ def init_map(height):
     #The point on the most right has index 2height-1, 4height-1... height(2height-2)-1
     ran2=random.randint(1,height-1)
     index_finish=ran2*2*height-1
-    print(maps)
+    for x in maps:
+        print(x)
+        print("\n")
     return maps, index_start, index_finish
 
+def examine(edge):
+    
+    pass
 
 if __name__ == "__main__":
     str_input=input("Please type in the height or width(same) of the puzzle, like 5:")
