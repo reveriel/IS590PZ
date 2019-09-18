@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 # Author: Chunhao Shen, Han Wang
 
+from graphviz import Digraph
+
 import random
 import copy
 import numpy as np
@@ -148,9 +150,23 @@ class Map(object):
         self.n_nodes = (h + 1) * w + (w + 1) * h  # number of nodes
         self.adj = [[0 for _ in range(self.n_nodes)]
                     for _ in range(self.n_nodes)]
+        self.dot_ = Digraph(comment='map', engine="neato")
+
+    # intersections
+    # see DOT documents:
+    # https://graphviz.readthedocs.io/en/stable/manual.html
+    # https://graphviz.readthedocs.io/en/stable/api.html
+    def dot(self):
+
+        for i in range(self.w+1):
+            for j in range(self.h+1):
+                self.dot_.node('{},{}'.format(i, j), pos="{},{}!".format(i, j))
+
+        self.dot_.render('test-output/map.dot', view=True)
 
     # map node: a pair of int to index in adj matrix
     # return the index in the matrix of the coordinate of that node in original map
+
     def node2idx(self, node):
         i, j = node
         assert j >= 0 and j < self.h * 2
@@ -341,3 +357,4 @@ if __name__ == "__main__":
     # map.forall_nodes(print)
 
     print(map)
+    map.dot()
