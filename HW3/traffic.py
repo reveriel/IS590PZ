@@ -140,7 +140,6 @@ class Map(object):
         self.n_nodes = (h + 1) * w + (w + 1) * h  # number of nodes
         self.adj = [[0 for _ in range(self.n_nodes)] for _ in range(self.n_nodes)]
 
-
     # map node: a pair of int to index in adj matrix
     # return the index in the matrix of the coordinate of that node in original map
     def node2idx(self, node):
@@ -206,41 +205,41 @@ class Map(object):
         # case 1: ends
         i, j = node
         if i == 0 and j == 0:
-            res += [R(node),LD(node)]
+            res += [R(node), LD(node)]
         if i == 1 and j == 0:
-            res += [D(node),UR(node)]
-        if i == 0 and j == self.w -1:
-            res += [L(node),RD(node)]
+            res += [D(node), UR(node)]
+        if i == 0 and j == self.w - 1:
+            res += [L(node), RD(node)]
         if i == 1 and j == self.w:
-            res += [D(node),UL(node)]
-        if i == self.h*2 -1 and j == 0:
-            res += [U(node),DR(node)]
-        if i == self.h*2 and j == 0:
-            res += [LU(node),R(node)]
-        if i == self.h*2 and j == self.w -1:
-            res += [L(node),RU(node)]
-        if i == self.h*2 -1 and j == self.w:
-            res += [(U(node),DL(node))]
+            res += [D(node), UL(node)]
+        if i == self.h * 2 - 1 and j == 0:
+            res += [U(node), DR(node)]
+        if i == self.h * 2 and j == 0:
+            res += [LU(node), R(node)]
+        if i == self.h * 2 and j == self.w - 1:
+            res += [L(node), RU(node)]
+        if i == self.h * 2 - 1 and j == self.w:
+            res += [(U(node), DL(node))]
         # case 2: top edge
         if self.is_nodes_on_weight(node):
             if i == 0:
-                res += [L(node),R(node),LD(node),RD(node)]
-        # case 3: bottom edge
+                res += [L(node), R(node), LD(node), RD(node)]
+            # case 3: bottom edge
             else:
-                res += [L(node),R(node),LU(node),RU(node)]
+                res += [L(node), R(node), LU(node), RU(node)]
         # case 4: the left edge
         if self.is_nodes_on_height(node):
             if j == 0:
-                res += [U(node),D(node),UR(node),DR(node)]
-        # case 5: the right edge
+                res += [U(node), D(node), UR(node), DR(node)]
+            # case 5: the right edge
             else:
-                res += [U(node),D(node),UL(node),DL(node)]
+                res += [U(node), D(node), UL(node), DL(node)]
         # case 6: normal nodes on even row
         if even(i):
-            res += [L(node),R(node), LU(node), LD(node), RU(node), RD(node)]
+            res += [L(node), R(node), LU(node), LD(node), RU(node), RD(node)]
         # case 7: normal nodes on odd row
         else:
-            res += [U(node),D(node), UL(node), UR(node), DL(node), DR(node)]
+            res += [U(node), D(node), UL(node), UR(node), DL(node), DR(node)]
         return res
 
     # permissive, all directions are allowed
@@ -283,7 +282,7 @@ class Map(object):
     # ←╮|╭→
     #  ↓↓↓
 
-    def find_arrow(intsec_all):
+    def find_arrow(self,intsec_all):
         for i in range(self.h + 1):
             for j in range(self.w + 1):
                 intsec = intsec_all[i][j]
@@ -326,8 +325,7 @@ if __name__ == "__main__":
     # sol=find_soultion(start,finish,maps)
 
     map = Map(4, 4, (2, 0), (4, 4))
- 
-    
+
     # print(s.count("o", 0, len(s)))
     print(map.n_nodes)
     print(map.node2idx((1, 0)))
