@@ -8,21 +8,21 @@ import numpy as np
 
 
 # data structure,
-# use adjactent matrix to represent the directed graph
+# use adjacent matrix to represent the directed graph
 #
-# e.g. : a street map of 2x2 blocks 
-#  'o' represent a segemtn of street
+# e.g. : a street map of 2x2 blocks
+#  'o' represent a segment of street, it's a node in the direted graph
 #  '[ ]' is a block
 #  '+' is an intersection
 #
 #                     end node
 #                     |
 #   +  o  +  o  +  o  +     (0,0)(0,1)(0,2)
-#   o [ ] o [ ] o [ ] o     (1,0)(1,1)(1,2)(1,3) 
+#   o [ ] o [ ] o [ ] o     (1,0)(1,1)(1,2)(1,3)
 #   +  o  +  o  +  o  +     (2,0)(2,1)(2,2)
 #   |
 #   start node
-#  
+#
 # how to name the node? use tuple
 # (ith-row, jth on each row), count from 0
 #  even row has h + 2 nodes
@@ -69,6 +69,7 @@ def D(node):
 # only appear in odd row
 def UL(node):
     i, j = node
+    assert(odd(i))
     return (i - 1, j - 1)
 
 
@@ -76,6 +77,7 @@ def UL(node):
 # only appear in odd row
 def UR(node):
     i, j = node
+    assert(odd(i))
     return (i - 1, j)
 
 
@@ -83,13 +85,15 @@ def UR(node):
 # odd
 def DL(node):
     i, j = node
+    assert(odd(i))
     return (i + 1, j - 1)
 
 
 # ╰→
-# odd    
+# odd
 def DR(node):
     i, j = node
+    assert(odd(i))
     return (i + 1, j)
 
 
@@ -98,6 +102,7 @@ def DR(node):
 # only appear in even row
 def RU(node):
     i, j = node
+    assert(even(i))
     return (i - 1, j + 1)
 
 
@@ -106,6 +111,7 @@ def RU(node):
 # only appear in even row
 def LU(node):
     i, j = node
+    assert(even(i))
     return (i - 1, j)
 
 
@@ -114,6 +120,7 @@ def LU(node):
 # even row
 def RD(node):
     i, j = node
+    assert(even(i))
     return (i + 1, j + 1)
 
 
@@ -122,6 +129,7 @@ def RD(node):
 # even row
 def LD(node):
     i, j = node
+    assert(even(i))
     return (i + 1, j)
 
 
@@ -138,7 +146,8 @@ class Map(object):
         assert even(start[0]) and start[1] == 0
         # assert even(end[0]) and end[1] == w + 1
         self.n_nodes = (h + 1) * w + (w + 1) * h  # number of nodes
-        self.adj = [[0 for _ in range(self.n_nodes)] for _ in range(self.n_nodes)]
+        self.adj = [[0 for _ in range(self.n_nodes)]
+                    for _ in range(self.n_nodes)]
 
     # map node: a pair of int to index in adj matrix
     # return the index in the matrix of the coordinate of that node in original map
@@ -197,50 +206,49 @@ class Map(object):
     # by "around", I mean, all legal neighbor nodes
     # this function take care of all the edge cases
     # ends: (0,0),(1,0),(0,w-1),(1,w),(2h-1,0),(2h,0),(2h,w-1),(2h-1,w)
+    #  TODO, ends are corners.
     # boundaries:
     # if top edge: L/R/LD/UD; if bottom edge: L/R/LU/RU
     # if left edge: U/D/DR/UR; if right edge: U/D/UL/DL
     def nodes_around(self, node):
-        res = []
         # case 1: ends
         i, j = node
         if i == 0 and j == 0:
-            res += [R(node), LD(node)]
+            return [R(node), LD(node)]
         if i == 1 and j == 0:
-            res += [D(node), UR(node)]
+            return [D(node), UR(node)]
         if i == 0 and j == self.w - 1:
-            res += [L(node), RD(node)]
+            return [L(node), RD(node)]
         if i == 1 and j == self.w:
-            res += [D(node), UL(node)]
+            return [D(node), UL(node)]
         if i == self.h * 2 - 1 and j == 0:
-            res += [U(node), DR(node)]
+            return [U(node), DR(node)]
         if i == self.h * 2 and j == 0:
-            res += [LU(node), R(node)]
+            return [LU(node), R(node)]
         if i == self.h * 2 and j == self.w - 1:
-            res += [L(node), RU(node)]
+            return [L(node), RU(node)]
         if i == self.h * 2 - 1 and j == self.w:
-            res += [(U(node), DL(node))]
+            return [(U(node), DL(node))]
         # case 2: top edge
         if self.is_nodes_on_weight(node):
             if i == 0:
-                res += [L(node), R(node), LD(node), RD(node)]
+                return [L(node), R(node), LD(node), RD(node)]
             # case 3: bottom edge
             else:
-                res += [L(node), R(node), LU(node), RU(node)]
+                return [L(node), R(node), LU(node), RU(node)]
         # case 4: the left edge
         if self.is_nodes_on_height(node):
             if j == 0:
-                res += [U(node), D(node), UR(node), DR(node)]
+                return [U(node), D(node), UR(node), DR(node)]
             # case 5: the right edge
             else:
-                res += [U(node), D(node), UL(node), DL(node)]
+                return [U(node), D(node), UL(node), DL(node)]
         # case 6: normal nodes on even row
         if even(i):
-            res += [L(node), R(node), LU(node), LD(node), RU(node), RD(node)]
+            return [L(node), R(node), LU(node), LD(node), RU(node), RD(node)]
         # case 7: normal nodes on odd row
         else:
-            res += [U(node), D(node), UL(node), UR(node), DL(node), DR(node)]
-        return res
+            return [U(node), D(node), UL(node), UR(node), DL(node), DR(node)]
 
     # permissive, all directions are allowed
     def connect_all(self):
@@ -282,7 +290,7 @@ class Map(object):
     # ←╮|╭→
     #  ↓↓↓
 
-    def find_arrow(self,intsec_all):
+    def find_arrow(self, intsec_all):
         for i in range(self.h + 1):
             for j in range(self.w + 1):
                 intsec = intsec_all[i][j]
@@ -332,4 +340,4 @@ if __name__ == "__main__":
 
     # map.forall_nodes(print)
 
-    # print(map)
+    print(map)
