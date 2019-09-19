@@ -4,6 +4,9 @@
 
 from graphviz import Digraph
 
+
+from collections import defaultdict
+import json
 import random
 import copy
 import numpy as np
@@ -19,9 +22,10 @@ import numpy as np
 #
 #                     end node
 #                     |
-#   +  o  +  o  +  o  +     (0,0)(0,1)(0,2)
+#   +  o  +  o  +  o  +       (0,0)(0,1)(0,2)
 #   o [ ] o [ ] o [ ] o     (1,0)(1,1)(1,2)(1,3)
-#   +  o  +  o  +  o  +     (2,0)(2,1)(2,2)
+#   +  o  +  o  +  o  +       (2,0)(2,1)(2,2)
+#   o [ ] o [ ] o [ ] o     (1,0)(1,1)(1,2)(1,3)
 #   |
 #   start node
 #
@@ -30,6 +34,7 @@ import numpy as np
 #  even row has h + 2 nodes
 #  odd row has h + 1 nodes
 
+
 def even(n):
     return n % 2 == 0
 
@@ -37,10 +42,11 @@ def even(n):
 def odd(n):
     return not even(n)
 
-
 # ←
 # even
 # odd, even is judged by the index of the row (0,1,2,..)
+
+
 def L(node):
     i, j = node
     return (i, j - 1)
@@ -135,22 +141,39 @@ def LD(node):
     return (i + 1, j)
 
 
+class Edge(object):
+    def __init__(self, a, b):
+        self.a = a
+        self.b = b
+
+    def __hash__(self):
+        return hash((self.a[0], self.a[1], self.b[0], self.b[1]))
+
+    def __eq__(self, value):
+        return (self.a[0], self.a[1], self.b[0], self.b[1]) == (value.a[0], value.a[1], value.b[0], value.b[1])
+
+    def __repr__(self):
+        return "({},{})->({},{})".format(self.a[0], self.a[1], self.b[0], self.b[1])
+
+
 class Map(object):
-    def __init__(self, w, h, start, end):
-        # w :  number of blocks on a row
+    def __init__(self, h, w):
         # h : number of blocks on a colomn
+        # w :  number of blocks on a row
         # start : the entry point, should be given as a pair e.g. (2,0)
         # end : the finish point, should be given as a pair e.g. (4,3)
-        self.w = w
         self.h = h
-        self.start = start
-        self.end = end
-        assert even(start[0]) and start[1] == 0
+        self.w = w
+        # self.start = start
+        # self.end = end
+        # assert even(start[0]) and start[1] == 0
         # assert even(end[0]) and end[1] == w + 1
         self.n_nodes = (h + 1) * w + (w + 1) * h  # number of nodes
         self.adj = [[0 for _ in range(self.n_nodes)]
                     for _ in range(self.n_nodes)]
         self.dot_ = Digraph(comment='map', engine="neato")
+        # keeps all edges, maps Edge to True/False
+        self.edges = {}
 
     # intersections
     # see DOT documents:
@@ -169,34 +192,44 @@ class Map(object):
 
     def node2idx(self, node):
         i, j = node
-        assert j >= 0 and j < self.h * 2
-        assert i >= 0 and i < self.w + 2
+        assert i >= 0 and i <= 2 * self.h
+        assert j >= 0 and j <= self.w + 1
         if even(i):
-            return self.w * (i / 2) + (self.w + 1) * (i / 2) + j
+            return self.w * (i // 2) + (self.w + 1) * (i // 2) + j
         else:
             return self.w * (i // 2) + (self.w + 1) * (i // 2 + 1) - 1 + j
 
     def cut(self, a, b):
+        assert(isinstance(a, tuple))
+        assert(self.edges[Edge(a, b)])
         i = self.node2idx(a)
         j = self.node2idx(b)
         self.adj[i][j] = 0
+        del self.edges[Edge(a, b)]
 
     def cut2(self, a, b):
         i = self.node2idx(a)
         j = self.node2idx(b)
+        assert(self.edges[Edge(a, b)])
+        assert(self.edges[Edge(b, a)])
         self.adj[i][j] = 0
         self.adj[j][i] = 0
+        del self.edges[Edge(a, b)]
+        del self.edges[Edge(b, a)]
 
     def conn(self, a, b):
         i = self.node2idx(a)
         j = self.node2idx(b)
         self.adj[i][j] = 1
+        self.edges[Edge(a, b)] = True
 
     def conn2(self, a, b):
         i = self.node2idx(a)
         j = self.node2idx(b)
         self.adj[i][j] = 1
         self.adj[j][i] = 1
+        self.edges[Edge(a, b)] = True
+        self.edges[Edge(b, a)] = True
 
     # apply f on all nodes
     def forall_nodes(self, f, cond=None):
@@ -209,14 +242,15 @@ class Map(object):
                     f((i, j))
 
     # node : a pair of int
-    # extra nodes means the node is in the 1st, last colomu
-    def is_nodes_on_weight(self, node):
+    # node on top or bottom of the map,
+    def is_nodes_on_top_or_bottom(self, node):
         i, j = node
         return i == 0 or i == self.h * 2
 
-    def is_nodes_on_height(self, node):
+    # node : a pair of int
+    def is_nodes_on_left_or_right(self, node):
         i, j = node
-        return j == 0 or j == self.w + 1
+        return odd(i) and (j == 0 or j == self.w)
 
     # return all nodes "around" the 'node'
     # by "around", I mean, all legal neighbor nodes
@@ -244,39 +278,64 @@ class Map(object):
         if i == self.h * 2 and j == self.w - 1:
             return [L(node), RU(node)]
         if i == self.h * 2 - 1 and j == self.w:
-            return [(U(node), DL(node))]
+            return [U(node), DL(node)]
         # case 2: top edge
-        if self.is_nodes_on_weight(node):
+        if self.is_nodes_on_top_or_bottom(node):
+            res = []
             if i == 0:
-                return [L(node), R(node), LD(node), RD(node)]
+                res = [LD(node), RD(node)]
             # case 3: bottom edge
             else:
-                return [L(node), R(node), LU(node), RU(node)]
+                res = [LU(node), RU(node)]
+            if j > 0:
+                res.append(L(node))
+            if j < self.w:
+                res.append(R(node))
+            return res
+
         # case 4: the left edge
-        if self.is_nodes_on_height(node):
+        if self.is_nodes_on_left_or_right(node):
+            res = []
             if j == 0:
-                return [U(node), D(node), UR(node), DR(node)]
+                res = [UR(node), DR(node)]
             # case 5: the right edge
             else:
-                return [U(node), D(node), UL(node), DL(node)]
+                res = [UL(node), DL(node)]
+            if i > 1:
+                res.append(U(node))
+            if i < 2 * self.h - 1:
+                res.append(D(node))
+            return res
+
         # case 6: normal nodes on even row
         if even(i):
-            return [L(node), R(node), LU(node), LD(node), RU(node), RD(node)]
+            res = [LU(node), LD(node), RU(node), RD(node)]
+            if j > 0:
+                res.append(L(node))
+            if j < self.w:
+                res.append(R(node))
+            return res
+
         # case 7: normal nodes on odd row
         else:
-            return [U(node), D(node), UL(node), UR(node), DL(node), DR(node)]
+            res = [UL(node), UR(node), DL(node), DR(node)]
+            if i > 1:
+                res.append(U(node))
+            if i < 2 * self.h - 1:
+                res.append(D(node))
+            return res
 
     # permissive, all directions are allowed
     def connect_all(self):
         for i in range(2 * self.h + 1):
             if even(i):
                 for j in range(self.w):  # +2
-                    nodes_list = self.nodes_around(i, j)
+                    nodes_list = self.nodes_around((i, j))
                     for each in nodes_list:
                         self.conn2((i, j), each)
             else:
                 for j in range(self.w + 1):
-                    nodes_list = self.nodes_around(i, j)
+                    nodes_list = self.nodes_around((i, j))
                     for each in nodes_list:
                         self.conn2((i, j), each)
 
@@ -313,48 +372,76 @@ class Map(object):
         # TODO: how can I know the directions of nodes in neighbor?
         pass
 
+    # randomly cut an edge
 
-def search(node, stack, maps, visited_edge):
-    # possible_edge=[]
-    # for i in range(len(maps[0])):
-    #     if i == 1:
-    pass
+    def rand_cut_edge(self):
+        e = random.choice(list(self.edges))
+        self.cut(e.a, e.b)
 
+    # randomly cut 'n' edges
+    def rand_cut_edges(self, n):
+        for i in range(n):
+            self.rand_cut_edge()
 
-def dfs(node, stack, maps, visited_edge):
-    possible_edge = search(node, stack, maps, visited_edge)
-    if len(possible_edge) == 0:
-        stack.pop()
-        dfs(stack[-1], stack, maps, visited_edge)
-    pass
+    # find path from start nodes to end nodes
+    def find_solutions(self):
+        # assume always starts here.
+        start = (2, -1)
+        # assume always nes here.
+        starts = [R(start), RU(start), RD(start)]
+        end = (self.h * 2 - 2, self.w + 1)
+        targets = [L(end), LU(end), LD(end)]
 
+        cur = start
+        visited_edges = {}
 
-def find_soultion(start, finish, maps, visited_edge):
-    # maps_sub=copy.copy(maps)
-    visited_edge = []
-    stack = []
-    stack.append(start)
-    dfs(stack[-1], stack, mapsere, visited_edge)
+        # is a -> b -> c a U-turn
+        # a, b, c are nodes
+        # TODO: not sure if it's correct
+        def is_u_turn(a, b, c):
+            if a == c:
+                return True
+            if a == L(c) or a == R(c) or a == U(c) or a == D(c):
+                return True
 
+        def find_solution(last, cur, next_steps, targets, visited_edges, path, solutions):
+            while len(next_steps) > 0:
+                next = next_steps.pop()
+                if Edge(cur, next) not in self.edges:
+                    continue
+                # no U-turn
+                if is_u_turn(last, cur, next):
+                    continue
+                if Edge(cur, next) not in visited_edges:
+                    visited_edges[Edge(cur, next)] = True
+                    path.append(next)
+                    if next in targets:  # reached
+                        # print(path)
+                        solutions.append(path)
+                    find_solution(cur, next, self.nodes_around(next),
+                                  targets, visited_edges, path, solutions)
+                    del visited_edges[Edge(cur, next)]
 
-def examine(edge):
-    pass
+        solutions = []
+        for s in starts:
+            find_solution(start, s, self.nodes_around(s),
+                          targets, visited_edges, [], solutions)
+        return solutions
 
 
 if __name__ == "__main__":
-    # str_input=input("Please type in the height or width(same) of the puzzle, like 5:")
-    # height=int(str_input)
-    # #Initialize n*n points in adjacency matrix which has size (n*n)*(n*n). if (A,B) ==1 then A has a way to B.
-    # start,finish,maps=init_map(height)
-    # sol=find_soultion(start,finish,maps)
 
-    map = Map(4, 4, (2, 0), (4, 4))
+    map = Map(3, 3)
 
-    # print(s.count("o", 0, len(s)))
-    print(map.n_nodes)
-    print(map.node2idx((1, 0)))
+    solutions = []
+    while (len(solutions) != 1):
 
-    # map.forall_nodes(print)
+        map.connect_all()
+        print("len, ", len(map.edges))
+        map.rand_cut_edges(int(len(map.edges) * 0.5))
+        print("len, ", len(map.edges))
 
-    print(map)
-    map.dot()
+        solutions = map.find_solutions()
+
+    print("num of solutions is ", len(solutions))
+    print(solutions[0:3])
